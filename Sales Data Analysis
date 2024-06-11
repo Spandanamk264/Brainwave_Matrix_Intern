@@ -1,0 +1,72 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
+
+# Step 1: Simulate Sales Data
+np.random.seed(42)
+
+# Generate a date range for one year
+date_range = pd.date_range(start="2023-01-01", end="2023-12-31", freq='D')
+
+# Simulate product IDs and categories
+product_ids = np.arange(1, 101)
+product_categories = ['Electronics', 'Clothing', 'Home', 'Sports', 'Toys']
+
+# Generate random sales data
+data = []
+for date in date_range:
+    for product_id in np.random.choice(product_ids, size=np.random.randint(5, 20)):
+        product_category = np.random.choice(product_categories)
+        units_sold = np.random.randint(1, 10)
+        unit_price = np.round(np.random.uniform(5.0, 500.0), 2)
+        total_revenue = units_sold * unit_price
+        data.append([date, product_id, product_category, units_sold, unit_price, total_revenue])
+
+# Create a DataFrame
+columns = ['Date', 'Product ID', 'Product Category', 'Units Sold', 'Unit Price', 'Total Revenue']
+sales_data = pd.DataFrame(data, columns=columns)
+
+# Step 2: Analyze the Sales Data
+
+# Total sales by month
+monthly_sales = sales_data.groupby(sales_data['Date'].dt.to_period('M')).agg({'Total Revenue': 'sum'}).reset_index()
+
+# Total sales by product category
+category_sales = sales_data.groupby('Product Category').agg({'Total Revenue': 'sum'}).reset_index()
+
+# Average sales price by product category
+category_avg_price = sales_data.groupby('Product Category').agg({'Unit Price': 'mean'}).reset_index()
+
+# Best-selling product
+best_selling_product = sales_data.groupby('Product ID').agg({'Total Revenue': 'sum', 'Units Sold': 'sum'}).reset_index()
+best_selling_product = best_selling_product.sort_values(by='Total Revenue', ascending=False).head(10)
+
+# Step 3: Visualize the Data
+
+# Monthly sales trend
+plt.figure(figsize=(12, 6))
+plt.plot(monthly_sales['Date'].astype(str), monthly_sales['Total Revenue'], marker='o')
+plt.title('Monthly Sales Trend')
+plt.xlabel('Month')
+plt.ylabel('Total Revenue')
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.show()
+
+# Sales distribution by product category
+plt.figure(figsize=(10, 6))
+plt.bar(category_sales['Product Category'], category_sales['Total Revenue'], color='skyblue')
+plt.title('Sales Distribution by Product Category')
+plt.xlabel('Product Category')
+plt.ylabel('Total Revenue')
+plt.show()
+
+# Best-selling products
+plt.figure(figsize=(12, 6))
+plt.bar(best_selling_product['Product ID'].astype(str), best_selling_product['Total Revenue'], color='lightgreen')
+plt.title('Best-Selling Products')
+plt.xlabel('Product ID')
+plt.ylabel('Total Revenue')
+plt.xticks(rotation=45)
+plt.show()
