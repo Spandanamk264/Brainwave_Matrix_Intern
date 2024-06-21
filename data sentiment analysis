@@ -1,0 +1,73 @@
+import pandas as pd
+from textblob import TextBlob
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+
+def preprocess_text(text):
+   
+    tokens = word_tokenize(text.lower())  # Convert to lowercase
+
+   
+    stop_words = set(stopwords.words('english'))
+    filtered_tokens = [word for word in tokens if word not in stop_words]
+
+    
+    lemmatizer = WordNetLemmatizer()
+    lemmatized_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
+
+   
+    preprocessed_text = ' '.join(lemmatized_tokens)
+    return preprocessed_text
+
+
+def analyze_sentiment(text):
+    analysis = TextBlob(text)
+   
+    polarity = analysis.sentiment.polarity
+    
+    if polarity > 0:
+        return 'positive'
+    elif polarity == 0:
+        return 'neutral'
+    else:
+        return 'negative'
+
+
+def read_text_file(filename):
+    with open(filename, 'r', encoding='utf-8') as file:
+        texts = file.readlines()
+    df = pd.DataFrame({'text': texts})
+    return df
+
+
+def calculate_sentiment_percentage(df):
+    df['processed_text'] = df['text'].apply(preprocess_text)
+    
+    
+    df['Sentiment'] = df['processed_text'].apply(analyze_sentiment)
+    
+   
+    total_count = len(df)
+    positive_percentage = (df['Sentiment'].value_counts().get('positive', 0) / total_count) * 100
+    neutral_percentage = (df['Sentiment'].value_counts().get('neutral', 0) / total_count) * 100
+    negative_percentage = (df['Sentiment'].value_counts().get('negative', 0) / total_count) * 100
+    
+    
+    print(f"Positive Sentiment: {positive_percentage:.2f}%")
+    print(f"Neutral Sentiment: {neutral_percentage:.2f}%")
+    print(f"Negative Sentiment: {negative_percentage:.2f}%")
+
+if __name__ == "__main__":
+   
+    filename = 'data2.txt'  # Replace with your text file dataset filename
+    df = read_text_file(filename)
+    
+
+    calculate_sentiment_percentage(df)
